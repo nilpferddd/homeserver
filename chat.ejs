@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> - Homeserver</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+        .sidebar {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            padding: 48px 0 0;
+            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+            background-color: #343a40;
+        }
+        .sidebar-sticky {
+            position: relative;
+            top: 0;
+            height: calc(100vh - 48px);
+            padding-top: 0.5rem;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+        .sidebar .nav-link {
+            font-weight: 500;
+            color: #d9d9d9;
+            padding: 0.75rem 1rem;
+        }
+        .sidebar .nav-link:hover {
+            color: #fff;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .sidebar .nav-link.active {
+            color: #fff;
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        .sidebar .nav-link i {
+            margin-right: 10px;
+        }
+        .navbar-brand {
+            padding-top: 0.75rem;
+            padding-bottom: 0.75rem;
+            font-size: 1rem;
+            background-color: rgba(0, 0, 0, 0.25);
+            box-shadow: inset -1px 0 0 rgba(0, 0, 0, 0.25);
+        }
+        .navbar .navbar-toggler {
+            top: 0.25rem;
+            right: 1rem;
+        }
+        .main-content {
+            margin-left: 240px;
+            padding: 20px;
+        }
+        @media (max-width: 767.98px) {
+            .sidebar {
+                width: 100%;
+                position: relative;
+                padding-top: 0;
+            }
+            .main-content {
+                margin-left: 0;
+            }
+        }
+        .card {
+            margin-bottom: 20px;
+            border: none;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+            font-weight: 500;
+        }
+        .chat-container {
+            height: 70vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            background-color: #f8f9fa;
+            border-radius: 0.25rem;
+        }
+        .message {
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            max-width: 80%;
+        }
+        .message-user {
+            background-color: #e9ecef;
+            align-self: flex-end;
+            margin-left: auto;
+        }
+        .message-ai {
+            background-color: #d1e7ff;
+            align-self: flex-start;
+        }
+        .message-meta {
+            font-size: 0.75rem;
+            color: #6c757d;
+            margin-top: 0.25rem;
+        }
+        .chat-input {
+            padding: 1rem;
+            background-color: #fff;
+            border-top: 1px solid #dee2e6;
+        }
+        .model-selector {
+            width: auto;
+            margin-right: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
+        <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3" href="/dashboard">Homeserver Admin</a>
+        <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="navbar-nav">
+            <div class="nav-item text-nowrap">
+                <a class="nav-link px-3" href="/auth/logout">Abmelden</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse">
+                <div class="sidebar-sticky pt-3">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link <%= title === 'Dashboard' ? 'active' : '' %>" href="/dashboard">
+                                <i class="bi bi-speedometer2"></i>
+                                Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <%= title === 'Systemstatus' ? 'active' : '' %>" href="/dashboard/system-status">
+                                <i class="bi bi-pc-display"></i>
+                                Systemstatus
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <%= title === 'Python Scripts' ? 'active' : '' %>" href="/dashboard/scripts">
+                                <i class="bi bi-code-square"></i>
+                                Python Scripts
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <%= title === 'Terminal-Zugriff' ? 'active' : '' %>" href="/terminal/terminal">
+                                <i class="bi bi-terminal"></i>
+                                Terminal-Zugriff
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <%= title.includes('OpenManus') ? 'active' : '' %>" href="/openmanus">
+                                <i class="bi bi-robot"></i>
+                                OpenManus AI
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <%= title === 'Einstellungen' ? 'active' : '' %>" href="/dashboard/settings">
+                                <i class="bi bi-gear"></i>
+                                Einstellungen
+                            </a>
+                        </li>
+                    </ul>
+                    
+                    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+                        <span>Benutzerverwaltung</span>
+                    </h6>
+                    <ul class="nav flex-column mb-2">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/auth/change-password">
+                                <i class="bi bi-key"></i>
+                                Passwort ändern
+                            </a>
+                        </li>
+                        <% if (user && user.isAdmin) { %>
+                        <li class="nav-item">
+                            <a class="nav-link <%= title === 'Benutzerverwaltung' ? 'active' : '' %>" href="/admin/users">
+                                <i class="bi bi-people"></i>
+                                Benutzer verwalten
+                            </a>
+                        </li>
+                        <% } %>
+                    </ul>
+                </div>
+            </nav>
+
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                <!-- Flash-Nachrichten anzeigen -->
+                <% if(messages.success_msg) { %>
+                    <div class="alert alert-success mt-3">
+                        <%= messages.success_msg %>
+                    </div>
+                <% } %>
+                <% if(messages.error_msg) { %>
+                    <div class="alert alert-danger mt-3">
+                        <%= messages.error_msg %>
+                    </div>
+                <% } %>
+                
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2"><%= title %></h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <a href="/openmanus" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> Zurück
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>
+                            <i class="bi bi-robot"></i> OpenManus Chat
+                        </span>
+                        <button class="btn btn-sm btn-outline-secondary" id="clearChat">
+                            <i class="bi bi-eraser"></i> Chat löschen
+                        </button>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="chat-container">
+                            <div class="chat-messages" id="chatMessages">
+                                <div class="message message-ai">
+                                    <div class="message-content">
+                                        Hallo! Ich bin OpenManus, Ihr KI-Assistent. Wie kann ich Ihnen heute helfen?
+                                    </div>
+                                    <div class="message-meta">
+                                        OpenManus AI • Gerade eben
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="chat-input">
+                                <form id="chatForm" class="d-flex">
+                                    <select class="form-select model-selector" id="modelSelector">
+                                        <option value="gpt-3.5-turbo">GPT-3.5</option>
+                                        <option value="gpt-4">GPT-4</option>
+                                        <option value="claude-3-opus">Claude 3</option>
+                                        <option value="llama-3-70b">Llama 3</option>
+                                    </select>
+                                    <input type="text" class="form-control me-2" id="messageInput" placeholder="Nachricht eingeben..." autocomplete="off">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-send"></i> Senden
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card mt-4">
+                    <div class="card-header">
+                        Tipps für die Nutzung
+                    </div>
+                    <div class="card-body">
+                        <ul>
+                            <li>Wählen Sie das gewünschte KI-Modell aus dem Dropdown-Menü.</li>
+                            <li>Stellen Sie klare und präzise Fragen für bessere Antworten.</li>
+                            <li>Sie können den Chat jederzeit löschen, um eine neue Konversation zu beginnen.</li>
+                            <li>Für komplexere Aufgaben können Sie die OpenManus CLI verwenden.</li>
+                            <li>Konfigurieren Sie Ihre API-Schlüssel in den OpenManus-Einstellungen für optimale Ergebnisse.</li>
+                        </ul>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const chatForm = document.getElementById('chatForm');
+            const messageInput = document.getElementById('messageInput');
+            const chatMessages = document.getElementById('chatMessages');
+            const modelSelector = document.getElementById('modelSelector');
+            const clearChatButton = document.getElementById('clearChat');
+            
+            // Lade Einstellungen und setze Standard-Modell
+            fetch('/openmanus/api/settings')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.defaultModel) {
+                        modelSelector.value = data.defaultModel;
+                    }
+                })
+                .catch(error => {
+                    console.error('Fehler beim Laden der Einstellungen:', error);
+                });
+            
+            // Chat-Nachricht senden
+            chatForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const message = messageInput.value.trim();
+                if (!message) return;
+                
+                // Benutzer-Nachricht anzeigen
+                addMessage(message, 'user');
+                
+                // Eingabefeld leeren
+                messageInput.value = '';
+                
+                // Anfrage an OpenManus API senden
+                fetch('/openmanus/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        model: modelSelector.value
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // AI-Antwort anzeigen
+                    addMessage(data.response, 'ai');
+                })
+                .catch(error => {
+                    console.error('Fehler bei der API-Anfrage:', error);
+                    addMessage('Es ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut.', 'ai', true);
+                });
+            });
+            
+            // Chat löschen
+            clearChatButton.addEventListener('click', function() {
+                chatMessages.innerHTML = '';
+                addMessage('Hallo! Ich bin OpenManus, Ihr KI-Assistent. Wie kann ich Ihnen heute helfen?', 'ai');
+            });
+            
+            // Nachricht zum Chat hinzufügen
+            function addMessage(text, sender, isError = false) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message message-${sender}`;
+                
+                if (isError) {
+                    messageDiv.classList.add('text-danger');
+                }
+                
+                const contentDiv = document.createElement('div');
+                contentDiv.className = 'message-content';
+                contentDiv.textContent = text;
+                
+                const metaDiv = document.createElement('div');
+                metaDiv.className = 'message-meta';
+                
+                const now = new Date();
+                const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                
+                metaDiv.textContent = sender === 'user' ? 
+                    `Sie • ${timeString}` : 
+                    `OpenManus AI • ${timeString}`;
+                
+                messageDiv.appendChild(contentDiv);
+                messageDiv.appendChild(metaDiv);
+                
+                chatMessages.appendChild(messageDiv);
+                
+                // Zum Ende scrollen
+                chatMess<response clipped><NOTE>To save on context only part of this file has been shown to you. You should retry this tool after you have searched inside the file with `grep -n` in order to find the line numbers of what you are looking for.</NOTE>

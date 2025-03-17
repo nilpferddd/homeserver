@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> - Homeserver</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.1.0/css/xterm.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+        .sidebar {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            padding: 48px 0 0;
+            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+            background-color: #343a40;
+        }
+        .sidebar-sticky {
+            position: relative;
+            top: 0;
+            height: calc(100vh - 48px);
+            padding-top: 0.5rem;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+        .sidebar .nav-link {
+            font-weight: 500;
+            color: #d9d9d9;
+            padding: 0.75rem 1rem;
+        }
+        .sidebar .nav-link:hover {
+            color: #fff;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .sidebar .nav-link.active {
+            color: #fff;
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        .sidebar .nav-link i {
+            margin-right: 10px;
+        }
+        .navbar-brand {
+            padding-top: 0.75rem;
+            padding-bottom: 0.75rem;
+            font-size: 1rem;
+            background-color: rgba(0, 0, 0, 0.25);
+            box-shadow: inset -1px 0 0 rgba(0, 0, 0, 0.25);
+        }
+        .navbar .navbar-toggler {
+            top: 0.25rem;
+            right: 1rem;
+        }
+        .main-content {
+            margin-left: 240px;
+            padding: 20px;
+        }
+        @media (max-width: 767.98px) {
+            .sidebar {
+                width: 100%;
+                position: relative;
+                padding-top: 0;
+            }
+            .main-content {
+                margin-left: 0;
+            }
+        }
+        .card {
+            margin-bottom: 20px;
+            border: none;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+            font-weight: 500;
+        }
+        #terminal-container {
+            height: 500px;
+            background-color: #000;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .terminal-toolbar {
+            background-color: #343a40;
+            padding: 8px;
+            border-radius: 5px 5px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .terminal-toolbar .btn-group {
+            margin-right: 10px;
+        }
+        .terminal-toolbar .terminal-title {
+            color: #fff;
+            font-weight: 500;
+            margin: 0;
+        }
+        #command-input {
+            background-color: #212529;
+            color: #fff;
+            border: 1px solid #495057;
+        }
+        #command-input:focus {
+            background-color: #212529;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
+        <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3" href="/dashboard">Homeserver Admin</a>
+        <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="navbar-nav">
+            <div class="nav-item text-nowrap">
+                <a class="nav-link px-3" href="/auth/logout">Abmelden</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse">
+                <div class="sidebar-sticky pt-3">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link <%= title === 'Dashboard' ? 'active' : '' %>" href="/dashboard">
+                                <i class="bi bi-speedometer2"></i>
+                                Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <%= title === 'Systemstatus' ? 'active' : '' %>" href="/dashboard/system-status">
+                                <i class="bi bi-pc-display"></i>
+                                Systemstatus
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <%= title === 'Python Scripts' ? 'active' : '' %>" href="/dashboard/scripts">
+                                <i class="bi bi-code-square"></i>
+                                Python Scripts
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <%= title === 'Terminal-Zugriff' ? 'active' : '' %>" href="/terminal/terminal">
+                                <i class="bi bi-terminal"></i>
+                                Terminal-Zugriff
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <%= title === 'Einstellungen' ? 'active' : '' %>" href="/dashboard/settings">
+                                <i class="bi bi-gear"></i>
+                                Einstellungen
+                            </a>
+                        </li>
+                    </ul>
+                    
+                    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+                        <span>Benutzerverwaltung</span>
+                    </h6>
+                    <ul class="nav flex-column mb-2">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/auth/change-password">
+                                <i class="bi bi-key"></i>
+                                Passwort ändern
+                            </a>
+                        </li>
+                        <% if (user && user.isAdmin) { %>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/users">
+                                <i class="bi bi-people"></i>
+                                Benutzer verwalten
+                            </a>
+                        </li>
+                        <% } %>
+                    </ul>
+                </div>
+            </nav>
+
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                <!-- Flash-Nachrichten anzeigen -->
+                <% if(messages.success_msg) { %>
+                    <div class="alert alert-success mt-3">
+                        <%= messages.success_msg %>
+                    </div>
+                <% } %>
+                <% if(messages.error_msg) { %>
+                    <div class="alert alert-danger mt-3">
+                        <%= messages.error_msg %>
+                    </div>
+                <% } %>
+                
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2"><%= title %></h1>
+                </div>
+                
+                <div class="card">
+                    <div class="terminal-toolbar">
+                        <h5 class="terminal-title">
+                            <i class="bi bi-terminal"></i> 
+                            <span id="terminal-hostname">homeserver</span>:<span id="terminal-path">~</span>
+                        </h5>
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-outline-light" id="clear-terminal">
+                                <i class="bi bi-eraser"></i> Löschen
+                            </button>
+                            <button class="btn btn-sm btn-outline-light" id="terminal-help">
+                                <i class="bi bi-question-circle"></i> Hilfe
+                            </button>
+                        </div>
+                    </div>
+                    <div id="terminal-container"></div>
+                    <div class="card-footer">
+                        <div class="input-group">
+                            <span class="input-group-text" id="command-prompt">$</span>
+                            <input type="text" class="form-control" id="command-input" placeholder="Befehl eingeben..." aria-label="Befehl" aria-describedby="command-prompt">
+                            <button class="btn btn-primary" type="button" id="execute-command">Ausführen</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card mt-4">
+                    <div class="card-header">
+                        Schnellbefehle
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4 mb-2">
+                                <button class="btn btn-outline-secondary w-100 text-start quick-command" data-command="ls -la">
+                                    <i class="bi bi-list-ul"></i> Dateien auflisten (ls -la)
+                                </button>
+                            </div>
+                            <div class="col-md-4 mb-2">
+                                <button class="btn btn-outline-secondary w-100 text-start quick-command" data-command="df -h">
+                                    <i class="bi bi-hdd"></i> Festplattennutzung (df -h)
+                                </button>
+                            </div>
+                            <div class="col-md-4 mb-2">
+                                <button class="btn btn-outline-secondary w-100 text-start quick-command" data-command="free -h">
+                                    <i class="bi bi-memory"></i> Speichernutzung (free -h)
+                                </button>
+                            </div>
+                            <div class="col-md-4 mb-2">
+                                <button class="btn btn-outline-secondary w-100 text-start quick-command" data-command="ps aux">
+                                    <i class="bi bi-activity"></i> Prozesse anzeigen (ps aux)
+                                </button>
+                            </div>
+                            <div class="col-md-4 mb-2">
+                                <button class="btn btn-outline-secondary w-100 text-start quick-command" data-command="uptime">
+                                    <i class="bi bi-clock-history"></i> Uptime anzeigen
+                                </button>
+                            </div>
+                            <div class="col-md-4 mb-2">
+                                <button class="btn btn-outline-secondary w-100 text-start quick-command" data-command="ifconfig">
+                                    <i class="bi bi-ethernet"></i> Netzwerkschnittstellen
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm@5.1.0/lib/xterm.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Terminal initialisieren
+            const terminal = new Terminal({
+                cursorBlink: true,
+                theme: {
+                    background: '#000',
+                    foreground: '#fff'
+                },
+                fontSize: 14,
+                fontFamily: 'Menlo, Monaco, "Courier New", monospace'
+            });
+            
+            terminal.open(document.getElementById('terminal-container'));
+            terminal.writeln('Willkommen im Homeserver Terminal!');
+            terminal.writeln('Geben Sie Befehle ein, um mit dem Server zu interagieren.');
+            terminal.writeln('Für Hilfe geben Sie "help" ein oder klicken Sie auf den Hilfe-Button.');
+            terminal.writeln('');
+            terminal.write('$ ');
+            
+            // Systeminformationen abrufen
+            fetch('/terminal/api/system-info')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('terminal-hostname').textContent = data.hostname;
+                });
+            
+            // Befehl ausführen
+            function executeCommand(command) {
+                if (!command) return;
+                
+                terminal.writeln(`$ ${command}`);
+                
+                if (command === 'clear') {
+                    terminal.clear();
+                    terminal.write('$ ');
+                    return;
+                }
+                
+                if (command === 'help') {
+                    terminal.writeln('Verfügbare Befehle:');
+                    terminal.writeln('  clear - Terminal löschen');
+                    terminal.writeln('  help - Diese Hilfe anzeigen');
+                    terminal.writeln('  ls, cd, pwd, cat, etc. - Standard Linux-Befehle');
+                    terminal.writeln('');
+                    terminal.write('$ ');
+                    return;
+                }
+                
+                fetch('/terminal/api/execute-command', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ command })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.stdout) {
+                        terminal.writeln(data.stdout);
+                    }
+                    
+                    if (data.stderr) {
+                        terminal.writeln(`\x1b[31m${data.stderr}\x1b[0m`);
+                    }
+                    
+                    terminal.write('$ ');
+                })
+                .catch(error => {
+                    terminal.writeln(`\x1b[31mFehler bei der Ausführung des Befehls: ${error.message}\x1b[0m`);
+                    terminal.write('$ ');
+                });
+            }
+            
+            // Event-Listener für Befehlseingabe
+            document.getElementById('command-input').addEventListener('keydown', function(event) {
+                if (event.key === 'Enter') {
+                    const command = this.value.trim();
+                    executeCommand(command);
+                    this.value = '';
+                }
+            });
+            
+            // Ausführen-Button
+            document.getElementById('execute-command').addEventListener('click', function() {
+                const commandInput = document.getElementById('command-input');
+                const command = commandInput.value.trim();
+                executeCommand(command);
+                commandInput.value = '';
+            });
+            
+            // Terminal löschen
+            document.getElementById('clear-terminal').addEventListener('click', <response clipped><NOTE>To save on context only part of this file has been shown to you. You should retry this tool after you have searched inside the file with `grep -n` in order to find the line numbers of what you are looking for.</NOTE>

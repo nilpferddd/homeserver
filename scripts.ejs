@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> - Homeserver</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+        .sidebar {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            padding: 48px 0 0;
+            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+            background-color: #343a40;
+        }
+        .sidebar-sticky {
+            position: relative;
+            top: 0;
+            height: calc(100vh - 48px);
+            padding-top: 0.5rem;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+        .sidebar .nav-link {
+            font-weight: 500;
+            color: #d9d9d9;
+            padding: 0.75rem 1rem;
+        }
+        .sidebar .nav-link:hover {
+            color: #fff;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .sidebar .nav-link.active {
+            color: #fff;
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        .sidebar .nav-link i {
+            margin-right: 10px;
+        }
+        .navbar-brand {
+            padding-top: 0.75rem;
+            padding-bottom: 0.75rem;
+            font-size: 1rem;
+            background-color: rgba(0, 0, 0, 0.25);
+            box-shadow: inset -1px 0 0 rgba(0, 0, 0, 0.25);
+        }
+        .navbar .navbar-toggler {
+            top: 0.25rem;
+            right: 1rem;
+        }
+        .main-content {
+            margin-left: 240px;
+            padding: 20px;
+        }
+        @media (max-width: 767.98px) {
+            .sidebar {
+                width: 100%;
+                position: relative;
+                padding-top: 0;
+            }
+            .main-content {
+                margin-left: 0;
+            }
+        }
+        .card {
+            margin-bottom: 20px;
+            border: none;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+            font-weight: 500;
+        }
+        .script-card {
+            transition: transform 0.2s;
+        }
+        .script-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+        .script-actions {
+            display: flex;
+            gap: 5px;
+        }
+        .upload-area {
+            border: 2px dashed #ddd;
+            border-radius: 5px;
+            padding: 25px;
+            text-align: center;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        .upload-area:hover {
+            border-color: #aaa;
+        }
+        .upload-area i {
+            font-size: 48px;
+            color: #6c757d;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
+        <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3" href="/dashboard">Homeserver Admin</a>
+        <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="navbar-nav">
+            <div class="nav-item text-nowrap">
+                <a class="nav-link px-3" href="/auth/logout">Abmelden</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse">
+                <div class="sidebar-sticky pt-3">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link <%= title === 'Dashboard' ? 'active' : '' %>" href="/dashboard">
+                                <i class="bi bi-speedometer2"></i>
+                                Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <%= title === 'Systemstatus' ? 'active' : '' %>" href="/dashboard/system-status">
+                                <i class="bi bi-pc-display"></i>
+                                Systemstatus
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <%= title === 'Python Scripts' ? 'active' : '' %>" href="/dashboard/scripts">
+                                <i class="bi bi-code-square"></i>
+                                Python Scripts
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" id="vnc-link">
+                                <i class="bi bi-display"></i>
+                                VNC Zugriff
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <%= title === 'Einstellungen' ? 'active' : '' %>" href="/dashboard/settings">
+                                <i class="bi bi-gear"></i>
+                                Einstellungen
+                            </a>
+                        </li>
+                    </ul>
+                    
+                    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+                        <span>Benutzerverwaltung</span>
+                    </h6>
+                    <ul class="nav flex-column mb-2">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/auth/change-password">
+                                <i class="bi bi-key"></i>
+                                Passwort ändern
+                            </a>
+                        </li>
+                        <% if (user && user.isAdmin) { %>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/users">
+                                <i class="bi bi-people"></i>
+                                Benutzer verwalten
+                            </a>
+                        </li>
+                        <% } %>
+                    </ul>
+                </div>
+            </nav>
+
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                <!-- Flash-Nachrichten anzeigen -->
+                <% if(messages.success_msg) { %>
+                    <div class="alert alert-success mt-3">
+                        <%= messages.success_msg %>
+                    </div>
+                <% } %>
+                <% if(messages.error_msg) { %>
+                    <div class="alert alert-danger mt-3">
+                        <%= messages.error_msg %>
+                    </div>
+                <% } %>
+                
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2"><%= title %></h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#uploadScriptModal">
+                            <i class="bi bi-plus-lg"></i> Neues Script
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="upload-area" id="dropArea" onclick="document.getElementById('fileInput').click()">
+                    <i class="bi bi-cloud-arrow-up"></i>
+                    <h4>Python-Script hochladen</h4>
+                    <p>Klicken Sie hier oder ziehen Sie eine Datei hierher</p>
+                    <input type="file" id="fileInput" style="display: none" accept=".py">
+                </div>
+                
+                <div class="row">
+                    <% if (scripts && scripts.length > 0) { %>
+                        <% scripts.forEach(script => { %>
+                            <div class="col-md-4">
+                                <div class="card script-card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">
+                                            <i class="bi bi-filetype-py text-primary"></i>
+                                            <%= script %>
+                                        </h5>
+                                        <p class="card-text text-muted">
+                                            Zuletzt ausgeführt: Nie
+                                        </p>
+                                        <div class="script-actions">
+                                            <button class="btn btn-sm btn-success run-script" data-script="<%= script %>">
+                                                <i class="bi bi-play-fill"></i> Ausführen
+                                            </button>
+                                            <button class="btn btn-sm btn-info edit-script" data-script="<%= script %>">
+                                                <i class="bi bi-pencil"></i> Bearbeiten
+                                            </button>
+                                            <button class="btn btn-sm btn-danger delete-script" data-script="<%= script %>">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        <% }); %>
+                    <% } else { %>
+                        <div class="col-12">
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle"></i> Keine Python-Scripts gefunden. Laden Sie ein Script hoch, um zu beginnen.
+                            </div>
+                        </div>
+                    <% } %>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <!-- Modal für Script-Upload -->
+    <div class="modal fade" id="uploadScriptModal" tabindex="-1" aria-labelledby="uploadScriptModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="uploadScriptModalLabel">Neues Python-Script</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="scriptForm" action="/dashboard/scripts/upload" method="POST" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="scriptName" class="form-label">Script-Name</label>
+                            <input type="text" class="form-control" id="scriptName" name="scriptName" required>
+                            <div class="form-text">Der Name des Scripts (mit .py-Endung)</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="scriptContent" class="form-label">Script-Inhalt</label>
+                            <textarea class="form-control" id="scriptContent" name="scriptContent" rows="10" required></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="submit" form="scriptForm" class="btn btn-primary">Speichern</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal für Script-Ausführung -->
+    <div class="modal fade" id="runScriptModal" tabindex="-1" aria-labelledby="runScriptModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="runScriptModalLabel">Script ausführen</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Ausgabe</label>
+                        <pre id="scriptOutput" class="p-3 bg-dark text-light" style="height: 300px; overflow-y: auto;">Script wird ausgeführt...</pre>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Schließen</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Script-Ausführung simulieren
+        document.querySelectorAll('.run-script').forEach(button => {
+            button.addEventListener('click', function() {
+                const scriptName = this.getAttribute('data-script');
+                const runScriptModal = new bootstrap.Modal(document.getElementById('runScriptModal'));
+                document.getElementById('runScriptModalLabel').textContent = `Script ausführen: ${scriptName}`;
+                document.getElementById('scriptOutput').textContent = 'Script wird ausgeführt...';
+                runScriptModal.show();
+                
+                // Simulierte Ausgabe
+                setTimeout(() => {
+                    document.getElementById('scriptOutput').textContent = `Ausführung von ${scriptName} gestartet...\n\nHello, World!\nDies ist eine Testausgabe.\n\nScript erfolgreich ausgeführt.`;
+                }, 1500);
+            });
+        });
+        
+        // Drag & Drop für Datei-Upload
+        const dropArea = document.getElementById('dropArea');
+        const fileInput = document.getElementById('fileInput');
+        
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+        });
+        
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, highlight, false);
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, unhighlight, false);
+        });
+        
+        function highlight() {
+            dropArea.classList.add('bg-light');
+        }
+        
+        function unhighlight() {
+            dropArea.classList.remove('bg-light');
+        }
+        
+        dropArea.addEventListener('drop', handleDrop, false);
+        
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles(files);
+        }
+        
+        fileInput.addEventListener('change', function() {
+            handleFiles(this.files);
+        });
+        
+        function handleFiles(fil<response clipped><NOTE>To save on context only part of this file has been shown to you. You should retry this tool after you have searched inside the file with `grep -n` in order to find the line numbers of what you are looking for.</NOTE>

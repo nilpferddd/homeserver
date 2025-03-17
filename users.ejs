@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> - Homeserver</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+        .sidebar {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            padding: 48px 0 0;
+            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+            background-color: #343a40;
+        }
+        .sidebar-sticky {
+            position: relative;
+            top: 0;
+            height: calc(100vh - 48px);
+            padding-top: 0.5rem;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+        .sidebar .nav-link {
+            font-weight: 500;
+            color: #d9d9d9;
+            padding: 0.75rem 1rem;
+        }
+        .sidebar .nav-link:hover {
+            color: #fff;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .sidebar .nav-link.active {
+            color: #fff;
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        .sidebar .nav-link i {
+            margin-right: 10px;
+        }
+        .navbar-brand {
+            padding-top: 0.75rem;
+            padding-bottom: 0.75rem;
+            font-size: 1rem;
+            background-color: rgba(0, 0, 0, 0.25);
+            box-shadow: inset -1px 0 0 rgba(0, 0, 0, 0.25);
+        }
+        .navbar .navbar-toggler {
+            top: 0.25rem;
+            right: 1rem;
+        }
+        .main-content {
+            margin-left: 240px;
+            padding: 20px;
+        }
+        @media (max-width: 767.98px) {
+            .sidebar {
+                width: 100%;
+                position: relative;
+                padding-top: 0;
+            }
+            .main-content {
+                margin-left: 0;
+            }
+        }
+        .card {
+            margin-bottom: 20px;
+            border: none;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+            font-weight: 500;
+        }
+        .user-badge {
+            font-size: 0.8rem;
+            padding: 0.25rem 0.5rem;
+        }
+        .user-actions {
+            display: flex;
+            gap: 5px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
+        <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3" href="/dashboard">Homeserver Admin</a>
+        <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="navbar-nav">
+            <div class="nav-item text-nowrap">
+                <a class="nav-link px-3" href="/auth/logout">Abmelden</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse">
+                <div class="sidebar-sticky pt-3">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link <%= title === 'Dashboard' ? 'active' : '' %>" href="/dashboard">
+                                <i class="bi bi-speedometer2"></i>
+                                Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <%= title === 'Systemstatus' ? 'active' : '' %>" href="/dashboard/system-status">
+                                <i class="bi bi-pc-display"></i>
+                                Systemstatus
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <%= title === 'Python Scripts' ? 'active' : '' %>" href="/dashboard/scripts">
+                                <i class="bi bi-code-square"></i>
+                                Python Scripts
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <%= title === 'Terminal-Zugriff' ? 'active' : '' %>" href="/terminal/terminal">
+                                <i class="bi bi-terminal"></i>
+                                Terminal-Zugriff
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <%= title === 'Einstellungen' ? 'active' : '' %>" href="/dashboard/settings">
+                                <i class="bi bi-gear"></i>
+                                Einstellungen
+                            </a>
+                        </li>
+                    </ul>
+                    
+                    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+                        <span>Benutzerverwaltung</span>
+                    </h6>
+                    <ul class="nav flex-column mb-2">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/auth/change-password">
+                                <i class="bi bi-key"></i>
+                                Passwort ändern
+                            </a>
+                        </li>
+                        <% if (user && user.isAdmin) { %>
+                        <li class="nav-item">
+                            <a class="nav-link <%= title === 'Benutzerverwaltung' ? 'active' : '' %>" href="/admin/users">
+                                <i class="bi bi-people"></i>
+                                Benutzer verwalten
+                            </a>
+                        </li>
+                        <% } %>
+                    </ul>
+                </div>
+            </nav>
+
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                <!-- Flash-Nachrichten anzeigen -->
+                <% if(messages.success_msg) { %>
+                    <div class="alert alert-success mt-3">
+                        <%= messages.success_msg %>
+                    </div>
+                <% } %>
+                <% if(messages.error_msg) { %>
+                    <div class="alert alert-danger mt-3">
+                        <%= messages.error_msg %>
+                    </div>
+                <% } %>
+                
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2"><%= title %></h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#createUserModal">
+                            <i class="bi bi-person-plus"></i> Neuer Benutzer
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        Benutzer
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Benutzername</th>
+                                        <th>Rolle</th>
+                                        <th>Letzter Login</th>
+                                        <th>Aktionen</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% if (users && users.length > 0) { %>
+                                        <% users.forEach(user => { %>
+                                            <tr>
+                                                <td><%= user.id %></td>
+                                                <td><%= user.username %></td>
+                                                <td>
+                                                    <% if (user.isAdmin) { %>
+                                                        <span class="badge bg-danger user-badge">Administrator</span>
+                                                    <% } else { %>
+                                                        <span class="badge bg-secondary user-badge">Benutzer</span>
+                                                    <% } %>
+                                                </td>
+                                                <td><%= user.lastLogin ? new Date(user.lastLogin).toLocaleString('de-DE') : 'Nie' %></td>
+                                                <td>
+                                                    <div class="user-actions">
+                                                        <button class="btn btn-sm btn-outline-primary reset-password-btn" data-bs-toggle="modal" data-bs-target="#resetPasswordModal" data-user-id="<%= user.id %>" data-username="<%= user.username %>">
+                                                            <i class="bi bi-key"></i>
+                                                        </button>
+                                                        <form action="/admin/users/toggle-admin" method="POST" class="d-inline">
+                                                            <input type="hidden" name="userId" value="<%= user.id %>">
+                                                            <button type="submit" class="btn btn-sm btn-outline-warning" <%= user.id === currentUser.id ? 'disabled' : '' %>>
+                                                                <i class="bi bi-shield<%= user.isAdmin ? '-fill' : '' %>"></i>
+                                                            </button>
+                                                        </form>
+                                                        <form action="/admin/users/delete" method="POST" class="d-inline">
+                                                            <input type="hidden" name="userId" value="<%= user.id %>">
+                                                            <button type="submit" class="btn btn-sm btn-outline-danger" <%= user.id === currentUser.id ? 'disabled' : '' %> onclick="return confirm('Sind Sie sicher, dass Sie diesen Benutzer löschen möchten?')">
+                                                                <i class="bi bi-trash"></i>
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        <% }); %>
+                                    <% } else { %>
+                                        <tr>
+                                            <td colspan="5" class="text-center">Keine Benutzer gefunden</td>
+                                        </tr>
+                                    <% } %>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <!-- Modal für Benutzer erstellen -->
+    <div class="modal fade" id="createUserModal" tabindex="-1" aria-labelledby="createUserModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createUserModalLabel">Neuen Benutzer erstellen</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="createUserForm" action="/admin/users/create" method="POST">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Benutzername</label>
+                            <input type="text" class="form-control" id="username" name="username" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Passwort</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="isAdmin" name="isAdmin">
+                            <label class="form-check-label" for="isAdmin">Administrator</label>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="submit" form="createUserForm" class="btn btn-primary">Erstellen</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal für Passwort zurücksetzen -->
+    <div class="modal fade" id="resetPasswordModal" tabindex="-1" aria-labelledby="resetPasswordModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="resetPasswordModalLabel">Passwort zurücksetzen</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="resetPasswordForm" action="/admin/users/reset-password" method="POST">
+                        <input type="hidden" id="resetUserId" name="userId">
+                        <p>Passwort für Benutzer <strong id="resetUsername"></strong> zurücksetzen:</p>
+                        <div class="mb-3">
+                            <label for="newPassword" class="form-label">Neues Passwort</label>
+                            <input type="password" class="form-control" id="newPassword" name="newPassword" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="submit" form="resetPasswordForm" class="btn btn-primary">Zurücksetzen</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Passwort-Reset-Modal mit Benutzerdaten füllen
+        document.querySelectorAll('.reset-password-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const userId = this.getAttribute('data-user-id');
+                const username = this.getAttribute('data-username');
+                
+                docum<response clipped><NOTE>To save on context only part of this file has been shown to you. You should retry this tool after you have searched inside the file with `grep -n` in order to find the line numbers of what you are looking for.</NOTE>

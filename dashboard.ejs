@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> - Homeserver</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+        .sidebar {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            padding: 48px 0 0;
+            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+            background-color: #343a40;
+        }
+        .sidebar-sticky {
+            position: relative;
+            top: 0;
+            height: calc(100vh - 48px);
+            padding-top: 0.5rem;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+        .sidebar .nav-link {
+            font-weight: 500;
+            color: #d9d9d9;
+            padding: 0.75rem 1rem;
+        }
+        .sidebar .nav-link:hover {
+            color: #fff;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .sidebar .nav-link.active {
+            color: #fff;
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        .sidebar .nav-link i {
+            margin-right: 10px;
+        }
+        .navbar-brand {
+            padding-top: 0.75rem;
+            padding-bottom: 0.75rem;
+            font-size: 1rem;
+            background-color: rgba(0, 0, 0, 0.25);
+            box-shadow: inset -1px 0 0 rgba(0, 0, 0, 0.25);
+        }
+        .navbar .navbar-toggler {
+            top: 0.25rem;
+            right: 1rem;
+        }
+        .main-content {
+            margin-left: 240px;
+            padding: 20px;
+        }
+        @media (max-width: 767.98px) {
+            .sidebar {
+                width: 100%;
+                position: relative;
+                padding-top: 0;
+            }
+            .main-content {
+                margin-left: 0;
+            }
+        }
+        .card {
+            margin-bottom: 20px;
+            border: none;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+            font-weight: 500;
+        }
+        .status-card {
+            text-align: center;
+            padding: 20px;
+        }
+        .status-card i {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        .status-card .status-value {
+            font-size: 24px;
+            font-weight: 500;
+        }
+        .status-card .status-label {
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
+        <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3" href="/dashboard">Homeserver Admin</a>
+        <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="navbar-nav">
+            <div class="nav-item text-nowrap">
+                <a class="nav-link px-3" href="/auth/logout">Abmelden</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse">
+                <div class="sidebar-sticky pt-3">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link <%= title === 'Dashboard' ? 'active' : '' %>" href="/dashboard">
+                                <i class="bi bi-speedometer2"></i>
+                                Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <%= title === 'Systemstatus' ? 'active' : '' %>" href="/dashboard/system-status">
+                                <i class="bi bi-pc-display"></i>
+                                Systemstatus
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <%= title === 'Python Scripts' ? 'active' : '' %>" href="/dashboard/scripts">
+                                <i class="bi bi-code-square"></i>
+                                Python Scripts
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" id="vnc-link">
+                                <i class="bi bi-display"></i>
+                                VNC Zugriff
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <%= title === 'Einstellungen' ? 'active' : '' %>" href="/dashboard/settings">
+                                <i class="bi bi-gear"></i>
+                                Einstellungen
+                            </a>
+                        </li>
+                    </ul>
+                    
+                    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+                        <span>Benutzerverwaltung</span>
+                    </h6>
+                    <ul class="nav flex-column mb-2">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/auth/change-password">
+                                <i class="bi bi-key"></i>
+                                Passwort ändern
+                            </a>
+                        </li>
+                        <% if (user && user.isAdmin) { %>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/users">
+                                <i class="bi bi-people"></i>
+                                Benutzer verwalten
+                            </a>
+                        </li>
+                        <% } %>
+                    </ul>
+                </div>
+            </nav>
+
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                <!-- Flash-Nachrichten anzeigen -->
+                <% if(messages.success_msg) { %>
+                    <div class="alert alert-success mt-3">
+                        <%= messages.success_msg %>
+                    </div>
+                <% } %>
+                <% if(messages.error_msg) { %>
+                    <div class="alert alert-danger mt-3">
+                        <%= messages.error_msg %>
+                    </div>
+                <% } %>
+                
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2"><%= title %></h1>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="card status-card">
+                            <i class="bi bi-cpu text-primary"></i>
+                            <div class="status-value" id="cpu-usage">--</div>
+                            <div class="status-label">CPU Auslastung</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card status-card">
+                            <i class="bi bi-memory text-success"></i>
+                            <div class="status-value" id="memory-usage">--</div>
+                            <div class="status-label">Speichernutzung</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card status-card">
+                            <i class="bi bi-hdd text-warning"></i>
+                            <div class="status-value" id="disk-usage">--</div>
+                            <div class="status-label">Festplattennutzung</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card status-card">
+                            <i class="bi bi-clock-history text-info"></i>
+                            <div class="status-value" id="uptime">--</div>
+                            <div class="status-label">Uptime</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                Schnellzugriff
+                            </div>
+                            <div class="card-body">
+                                <div class="d-grid gap-2">
+                                    <a href="/dashboard/scripts" class="btn btn-primary">
+                                        <i class="bi bi-code-square"></i> Python Scripts verwalten
+                                    </a>
+                                    <a href="#" id="vnc-button" class="btn btn-success">
+                                        <i class="bi bi-display"></i> VNC Zugriff starten
+                                    </a>
+                                    <a href="/dashboard/system-status" class="btn btn-info text-white">
+                                        <i class="bi bi-pc-display"></i> Detaillierter Systemstatus
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                Letzte Aktivitäten
+                            </div>
+                            <div class="card-body">
+                                <p class="text-muted">Noch keine Aktivitäten aufgezeichnet.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Dummy-Daten für die Anzeige
+        document.getElementById('cpu-usage').textContent = '12%';
+        document.getElementById('memory-usage').textContent = '1.2 GB';
+        document.getElementById('disk-usage').textContent = '28%';
+        document.getElementById('uptime').textContent = '2d 4h';
+        
+        // VNC-Links
+        document.getElementById('vnc-link').addEventListener('click', function(e) {
+            e.preventDefault();
+            alert('VNC-Zugriff wird in einem separaten Fenster geöffnet...');
+        });
+        
+        document.getElementById('vnc-button').addEventListener('click', function(e) {
+            e.preventDefault();
+            alert('VNC-Zugriff wird in einem separaten Fenster geöffnet...');
+        });
+    </script>
+</body>
+</html>
